@@ -1,0 +1,14 @@
+# Use the official Nginx image as the base image
+FROM nginx:alpine
+
+# Set the working directory
+WORKDIR /usr/share/nginx/html
+
+# Copy the content of the webpages directory into the container
+COPY . /usr/share/nginx/html
+
+# Expose port 80 to make the website accessible
+EXPOSE 80
+
+# Run NGINX in the foreground
+CMD ["nginx", "-g", "daemon off;"]
