@@ -15,5 +15,9 @@ variable "ecs_cluster_name" {
   default = "my-app-cluster"
 }
 
-variable "frontend_image" {}
-variable "backend_image" {}
+variable "aws_account_id" { description = "AWS Account ID"; type = string }
+variable "region" { description = "AWS Region"; type = string }
+variable "frontend_image" { description = "Frontend Docker image URL"; type = string }
+variable "backend_image" { description = "Backend Docker image URL"; type = string }
+variable "backend_ecr_repo_name" { description = "ECR repo name for backend"; type = string }
+variable "asg_desired_capacity" { description = "Desired capacity for auto scaling group"; type = number }

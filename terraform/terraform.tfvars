@@ -4,9 +4,10 @@ aws_region = "us-east-1"  # Modify based on your region
 # AWS Account ID (Replace this with your actual AWS Account ID)
 aws_account_id = "654654474502"
 
-# Docker image URIs for frontend and backend
-frontend_image = "${aws_account_id}.dkr.ecr.${aws_region}.amazonaws.com/frontend:latest"
-backend_image = "${aws_account_id}.dkr.ecr.${aws_region}.amazonaws.com/backend:latest"
+region                = "us-east-1"
+frontend_image        = "${var.aws_account_id}.dkr.ecr.${var.region}.amazonaws.com/frontend:latest"
+backend_image         = "${var.aws_account_id}.dkr.ecr.${var.region}.amazonaws.com/backend:latest"
+asg_desired_capacity  = 3
 
 # VPC configuration
 vpc_cidr_block = "10.0.0.0/16"
@@ -24,11 +25,6 @@ db_engine = "mysql"
 db_name = "formdata"
 db_username = "admin"
 db_password = "admin"
-
-# Auto Scaling Group configuration
-asg_min_size = 1
-asg_max_size = 3
-asg_desired_capacity = 2
 
 # ECS Cluster Name (you can change it if you want)
 ecs_cluster_name = "web-application-cluster"
