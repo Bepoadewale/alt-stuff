@@ -51,12 +51,7 @@ jobs:
     - name: Terraform Init
       working-directory: ./terraform
       run: terraform init -backend-config="bucket=${{ secrets.TF_BACKEND_BUCKET }}" -backend-config="key=terraform/state" -backend-config="region=${{ env.AWS_REGION }}"
-
-    # Terraform Plan
-    - name: Terraform Plan
-      working-directory: ./terraform
-      run: terraform plan -var="aws_account_id=${{ secrets.AWS_ACCOUNT_ID }}" -var="region=${{ env.AWS_REGION }}"
-
+    
     # Terraform Apply
     - name: Terraform Apply
       working-directory: ./terraform
