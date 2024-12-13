@@ -3,13 +3,15 @@ provider "aws" {
 }
 
 module "vpc" {
-  source      = "./vpc.tf"
+  source = "terraform-aws-modules/vpc/aws"
+  version = "3.19.0"
   vpc_cidr    = var.vpc_cidr
   subnet_cidrs = var.subnet_cidrs
 }
 
 module "ecs" {
-  source            = "./ecs.tf"
+  source = "terraform-aws-modules/ecs/aws"
+  version = "4.0.0"
   cluster_name      = var.ecs_cluster_name
   frontend_image    = var.frontend_image
   backend_image     = var.backend_image
