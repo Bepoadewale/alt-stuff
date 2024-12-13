@@ -3,13 +3,13 @@ provider "aws" {
 }
 
 module "vpc" {
-  source      = "./vpc"
+  source      = "./vpc.tf"
   vpc_cidr    = var.vpc_cidr
   subnet_cidrs = var.subnet_cidrs
 }
 
 module "ecs" {
-  source            = "./ecs"
+  source            = "./ecs.tf"
   cluster_name      = var.ecs_cluster_name
   frontend_image    = var.frontend_image
   backend_image     = var.backend_image
