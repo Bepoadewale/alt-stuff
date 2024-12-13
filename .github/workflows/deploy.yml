@@ -5,41 +5,68 @@ on:
     branches:
       - main
 
+env:
+  AWS_REGION: us-east-1
+  ECR_FRONTEND_REPO_NAME: frontend-repo
+  ECR_BACKEND_REPO_NAME: backend-repo
+
 jobs:
   deploy:
+    name: Deploy to AWS
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code1
+    # Checkout the repository
+    - name: Checkout Code
       uses: actions/checkout@v3
 
-    - name: Configure AWS credentials
+    # Configure AWS credentials
+    - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v3
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+        aws-region: ${{ env.AWS_REGION }}
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+    # Login to Amazon ECR
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
 
-    - name: Log in to Amazon ECR
-      uses: aws-actions/amazon-ecr-login@v1
-
+    # Build and push the frontend Docker image
     - name: Build and Push Frontend Docker Image
       run: |
-        docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/frontend:latest ./frontend
-        docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/frontend:latest
+        FRONTEND_IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_FRONTEND_REPO_NAME }}:latest
+        docker build -t $FRONTEND_IMAGE_URI ./frontend
+        docker push $FRONTEND_IMAGE_URI
 
+    # Build and push the backend Docker image
     - name: Build and Push Backend Docker Image
       run: |
-        docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/backend:latest ./backend
-        docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/backend:latest
+        BACKEND_IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_BACKEND_REPO_NAME }}:latest
+        docker build -t $BACKEND_IMAGE_URI ./backend
+        docker push $BACKEND_IMAGE_URI
 
-    - name: Terraform Init and Apply
-      run: |
-        terraform init
-        terraform apply -auto-approve
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    # Terraform Init
+    - name: Terraform Init
+      working-directory: ./terraform
+      run: terraform init -backend-config="bucket=${{ secrets.TF_BACKEND_BUCKET }}" -backend-config="key=terraform/state" -backend-config="region=${{ env.AWS_REGION }}"
+
+    # Terraform Format Check
+    - name: Terraform Format Check
+      working-directory: ./terraform
+      run: terraform fmt -check
+
+    # Terraform Plan
+    - name: Terraform Plan
+      working-directory: ./terraform
+      run: terraform plan -var="aws_account_id=${{ secrets.AWS_ACCOUNT_ID }}" -var="region=${{ env.AWS_REGION }}"
+
+    # Terraform Apply
+    - name: Terraform Apply
+      working-directory: ./terraform
+      run: terraform apply -auto-approve -var="aws_account_id=${{ secrets.AWS_ACCOUNT_ID }}" -var="region=${{ env.AWS_REGION }}"
+
+    # Post-deployment notification
+    - name: Deployment Complete
+      run: echo "Deployment successfully completed!"
